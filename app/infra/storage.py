@@ -37,7 +37,7 @@ def _model_path(series_id: str, version: str) -> str:
 async def get_next_version(series_id: str) -> str:
     """Lê o meta.json e retorna a próxima versão disponível (ex: v1, v2...)."""
     meta = await _meta_path(series_id)
-    if not os.path.exists(meta):
+    if not await asyncio.to_thread(os.path.exists, meta):
         return "v1"
     async with aiofiles.open(meta) as f:
         data: dict[str, int] = json.loads(await f.read())
@@ -64,7 +64,7 @@ async def save_model(series_id: str, version: str, model: AnomalyDetectionModel)
 async def load_from_disk(series_id: str, version: str) -> Optional[AnomalyDetectionModel]:
     """Carrega modelo diretamente do disco. Chamado pelo model_cache em caso de miss."""
     path = _model_path(series_id, version)
-    if not os.path.exists(path):
+    if not await asyncio.to_thread(os.path.exists, path):
         return None
     async with aiofiles.open(path) as f:
         data: dict[str, float] = json.loads(await f.read())
@@ -74,7 +74,7 @@ async def load_from_disk(series_id: str, version: str) -> Optional[AnomalyDetect
 async def get_latest_version(series_id: str) -> Optional[str]:
     """Sempre lê do disco — meta.json é a fonte de verdade após retreino."""
     meta = await _meta_path(series_id)
-    if not os.path.exists(meta):
+    if not await asyncio.to_thread(os.path.exists, meta):
         return None
     async with aiofiles.open(meta) as f:
         return json.loads(await f.read())["latest"]
@@ -82,24 +82,25 @@ async def get_latest_version(series_id: str) -> Optional[str]:
 
 async def count_trained_series() -> int:
     """Conta quantas séries possuem modelos treinados em disco."""
-    if not os.path.exists(settings.models_dir):
+    if not await asyncio.to_thread(os.path.exists, settings.models_dir):
         return 0
     entries = await asyncio.to_thread(os.listdir, settings.models_dir)
-    return len([
-        d for d in entries
-        if os.path.isdir(os.path.join(settings.models_dir, d))
+    checks = await asyncio.gather(*[
+        asyncio.to_thread(os.path.isdir, os.path.join(settings.models_dir, d))
+        for d in entries
     ])
+    return len([d for d, is_dir in zip(entries, checks) if is_dir])
 
 
 async def count_total_models() -> int:
     """Conta o total de versões de modelos treinados em disco (todos os series_ids)."""
-    if not os.path.exists(settings.models_dir):
+    if not await asyncio.to_thread(os.path.exists, settings.models_dir):
         return 0
     entries = await asyncio.to_thread(os.listdir, settings.models_dir)
     total = 0
     for series_dir in entries:
         series_path = os.path.join(settings.models_dir, series_dir)
-        if os.path.isdir(series_path):
+        if await asyncio.to_thread(os.path.isdir, series_path):
             files = await asyncio.to_thread(os.listdir, series_path)
             total += len([f for f in files if f.startswith("v") and f.endswith(".json")])
     return total
