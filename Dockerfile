@@ -1,11 +1,28 @@
-FROM python:3.11-slim
+# ── Stage 1: dependências de produção ────────────────────────────────────────
+FROM python:3.11-slim AS deps
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir uv
 
-COPY . .
+COPY pyproject.toml .
+COPY app/ app/
+RUN uv pip install --system --no-cache .
+
+
+# ── Stage 2: lint + testes ────────────────────────────────────────────────────
+FROM deps AS test
+
+RUN uv pip install --system --no-cache ruff pytest httpx
+
+COPY tests/ tests/
+
+RUN ruff check app/
+RUN pytest tests/ -v
+
+
+# ── Stage 3: produção ─────────────────────────────────────────────────────────
+FROM deps AS production
 
 RUN mkdir -p models_store logs
 

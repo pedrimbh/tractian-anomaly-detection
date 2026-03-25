@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'dev/**'
+  pull_request:
+    branches:
+      - 'feature/**'
+      - 'dev/**'
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build test stage
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: test
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
