@@ -10,8 +10,8 @@ router = APIRouter(tags=["Health Check"])
 async def healthcheck() -> HealthCheckResponse:
     """Retorna o estado da aplicação: séries treinadas e latências de inferência/treino."""
     return HealthCheckResponse(
-        series_trained=count_trained_series(),
-        total_models=count_total_models(),
-        inference_latency_ms=Metrics(**metrics_collector.get_inference_metrics()),
-        training_latency_ms=Metrics(**metrics_collector.get_training_metrics()),
+        series_trained=await count_trained_series(),
+        total_models=await count_total_models(),
+        inference_latency_ms=Metrics(**await metrics_collector.get_inference_metrics()),
+        training_latency_ms=Metrics(**await metrics_collector.get_training_metrics()),
     )
