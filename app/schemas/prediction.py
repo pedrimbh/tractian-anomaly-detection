@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 class PredictData(BaseModel):
     """Payload de entrada para o endpoint de predição."""
-    timestamp: str
+    timestamp: int
     value: float
 
 

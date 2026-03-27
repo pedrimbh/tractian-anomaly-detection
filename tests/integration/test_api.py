@@ -62,7 +62,7 @@ def test_fit_rejects_mismatched_lengths():
 @pytest.mark.integration
 def test_predict_normal_value():
     client.post(f"/fit/{SERIES_ID}", json=TRAIN_PAYLOAD)
-    r = client.post(f"/predict/{SERIES_ID}", json={"timestamp": "1700001000", "value": 10.2})
+    r = client.post(f"/predict/{SERIES_ID}", json={"timestamp": 1700001000, "value": 10.2})
     assert r.status_code == 200
     assert r.json()["anomaly"] is False
 
@@ -70,7 +70,7 @@ def test_predict_normal_value():
 @pytest.mark.integration
 def test_predict_anomalous_value():
     client.post(f"/fit/{SERIES_ID}", json=TRAIN_PAYLOAD)
-    r = client.post(f"/predict/{SERIES_ID}", json={"timestamp": "1700001001", "value": 9999.0})
+    r = client.post(f"/predict/{SERIES_ID}", json={"timestamp": 1700001001, "value": 9999.0})
     assert r.status_code == 200
     assert r.json()["anomaly"] is True
 
@@ -79,14 +79,14 @@ def test_predict_anomalous_value():
 def test_predict_specific_version():
     r_train = client.post(f"/fit/{SERIES_ID}", json=TRAIN_PAYLOAD)
     version = r_train.json()["version"]
-    r = client.post(f"/predict/{SERIES_ID}?version={version}", json={"timestamp": "1700001002", "value": 10.1})
+    r = client.post(f"/predict/{SERIES_ID}?version={version}", json={"timestamp": 1700001002, "value": 10.1})
     assert r.status_code == 200
     assert r.json()["model_version"] == version
 
 
 @pytest.mark.integration
 def test_predict_unknown_series():
-    r = client.post("/predict/series_inexistente_xyz", json={"timestamp": "1700001003", "value": 10.0})
+    r = client.post("/predict/series_inexistente_xyz", json={"timestamp": 1700001003, "value": 10.0})
     assert r.status_code == 404
 
 
