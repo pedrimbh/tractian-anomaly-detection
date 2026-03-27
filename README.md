@@ -64,7 +64,7 @@ curl -X POST http://localhost:8000/fit/sensor_xyz \
 ```bash
 curl -X POST http://localhost:8000/predict/sensor_xyz \
   -H "Content-Type: application/json" \
-  -d '{"timestamp": "1700001000", "value": 99.9}'
+  -d '{"timestamp": 1700001000, "value": 99.9}'
 ```
 
 ```json
