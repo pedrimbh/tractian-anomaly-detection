@@ -1,39 +1,21 @@
-import asyncio
-import time
-from fastapi import APIRouter
+import json
+
+from fastapi import APIRouter, HTTPException
+
+from app.ml.base import ModelTrainingError
 from app.schemas.training import TrainData, TrainResponse
-from app.domain.model import AnomalyDetectionModel
-from app.infra import storage
-from app.core.metrics import metrics_collector
-from app.core.logging import get_logger
+from app.services import training_service
 
 router = APIRouter(tags=["Training"])
-log = get_logger("training")
 
 
 @router.post("/fit/{series_id}", response_model=TrainResponse)
 async def fit(series_id: str, body: TrainData) -> TrainResponse:
     """Treina um novo modelo 3-sigma para a série informada e persiste em disco."""
-    t0 = time.perf_counter()
-
-    version = await storage.get_next_version(series_id)
-    model = AnomalyDetectionModel()
-    await asyncio.to_thread(model.fit, body.values)
-    await storage.save_model(series_id, version, model)
-
-    latency_ms = (time.perf_counter() - t0) * 1000
-    await metrics_collector.record_training(latency_ms)
-
-    log.info(
-        "model_trained",
-        series_id=series_id,
-        version=version,
-        points_used=len(body.values),
-        duration_ms=round(latency_ms, 3),
-    )
-
-    return TrainResponse(
-        series_id=series_id,
-        version=version,
-        points_used=len(body.values),
-    )
+    try:
+        result = await training_service.fit(series_id, body.values)
+    except ModelTrainingError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except (OSError, json.JSONDecodeError) as e:
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable, retry later")
+    return TrainResponse(series_id=series_id, **result)

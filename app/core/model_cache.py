@@ -1,6 +1,6 @@
 import asyncio
 from typing import Optional, Dict, Tuple
-from app.domain.model import AnomalyDetectionModel
+from app.ml.base import AnomalyDetector
 
 # ──────────────────────────────────────────
 # In-memory model cache
@@ -14,11 +14,11 @@ from app.domain.model import AnomalyDetectionModel
 #   - Routers chamam model_cache, nunca storage diretamente para modelos
 # ──────────────────────────────────────────
 
-_cache: Dict[Tuple[str, str], AnomalyDetectionModel] = {}
+_cache: Dict[Tuple[str, str], AnomalyDetector] = {}
 _lock: asyncio.Lock = asyncio.Lock()
 
 
-async def get(series_id: str, version: Optional[str] = None) -> Optional[AnomalyDetectionModel]:
+async def get(series_id: str, version: Optional[str] = None) -> Optional[AnomalyDetector]:
     """
     Retorna o modelo para (series_id, version).
     Se version=None, resolve o latest via disco antes de consultar o cache.
