@@ -44,7 +44,7 @@ class SensorUser(HttpUser):
         _post_with_retry(
             self.client,
             f"/predict/{self.series_id}",
-            {"timestamp": str(int(time.time())), "value": random.uniform(10.0, 20.0)},
+            {"timestamp": int(time.time()), "value": random.uniform(10.0, 20.0)},
         )
 
     @task(1)
