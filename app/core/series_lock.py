@@ -3,8 +3,6 @@ import tempfile
 
 from filelock import FileLock
 
-from app.core.config import settings
-
 _locks_dir = os.path.join(tempfile.gettempdir(), "tractian_locks")
 os.makedirs(_locks_dir, exist_ok=True)
 

@@ -16,6 +16,6 @@ async def fit(series_id: str, body: TrainData) -> TrainResponse:
         result = await training_service.fit(series_id, body.values)
     except ModelTrainingError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    except (OSError, json.JSONDecodeError) as e:
+    except (OSError, json.JSONDecodeError):
         raise HTTPException(status_code=503, detail="Service temporarily unavailable, retry later")
     return TrainResponse(series_id=series_id, **result)

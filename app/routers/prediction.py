@@ -18,7 +18,7 @@ async def predict(
     """Classifica um valor como anomalia ou normal usando o modelo treinado da série."""
     try:
         result = await prediction_service.predict(series_id, body.value, version)
-    except (OSError, json.JSONDecodeError) as e:
+    except (OSError, json.JSONDecodeError):
         raise HTTPException(status_code=503, detail="Service temporarily unavailable, retry later")
     if result is None:
         raise HTTPException(
