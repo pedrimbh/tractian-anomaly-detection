@@ -7,7 +7,7 @@ setup_logging()
 
 app: FastAPI = FastAPI(
     title="Time Series Anomaly Detection API",
-    version="0.0.0",
+    version="1.0.0",
     description="Anomaly detection on univariate time series data.",
 )
 
