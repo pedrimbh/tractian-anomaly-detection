@@ -14,7 +14,7 @@ RUN uv pip install --system --no-cache .
 # ── Stage 2: lint + testes ────────────────────────────────────────────────────
 FROM deps AS test
 
-RUN uv pip install --system --no-cache ruff pytest httpx
+RUN uv pip install --system --no-cache ruff pytest httpx locust types-aiofiles
 
 COPY tests/ tests/
 
