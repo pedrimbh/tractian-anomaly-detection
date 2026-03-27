@@ -11,7 +11,7 @@ Supports multiple independent series, model versioning, real-time predictions, a
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/YOUR_USERNAME/tractian-anomaly-detection
+git clone https://github.com/pedrimbh/tractian-anomaly-detection
 cd tractian-anomaly-detection
 
 # 2. Create virtual environment
@@ -159,18 +159,14 @@ pytest -m integration -v
 
 Load tests simulate real production traffic using [Locust](https://locust.io/) — multiple concurrent users sending independent HTTP requests with full middleware, cache, and Gunicorn overhead.
 
-### Setup
-
-```bash
-# Install dev dependencies (includes locust)
-pip install -e ".[dev]"
-```
-
 ### Running
 
-**Terminal 1 — start the API:**
+Use Docker to start the API — Gunicorn manages 4 worker processes, which is closer to a real production environment and exercises cross-process locking and concurrency properly.
+
+**Terminal 1 — start the API with Docker (Gunicorn + 4 workers):**
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+docker build --target production -t tractian-api .
+docker run --rm -p 8000:8000 tractian-api
 ```
 
 **Terminal 2 — start Locust:**
@@ -187,6 +183,8 @@ Open **http://localhost:8089** in the browser and configure:
 | Host | API base URL (no trailing path) | `http://localhost:8000` |
 
 Click **Start** to begin. The UI shows RPS, median/p95/p99 latency, and failure rate per endpoint (`/fit` and `/predict`) in real time.
+
+> **Why Docker?** Gunicorn spawns 4 independent worker processes — each with its own memory and event loop. This exercises cross-process FileLock coordination, cache isolation between workers, and realistic OS scheduling, which a single `uvicorn` process cannot replicate.
 
 ### Headless mode (CI / terminal only)
 
